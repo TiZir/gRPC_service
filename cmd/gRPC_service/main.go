@@ -32,9 +32,6 @@ func main() {
 	<-stop                                               // Ожидаем до почтупления в канал
 	application.GRPCServer.Stop()
 	log.Info("application stopped")
-
-	// Запустить gRPC приложения
-
 }
 
 func setupLogger(env string) *slog.Logger {

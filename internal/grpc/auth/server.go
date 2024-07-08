@@ -2,7 +2,10 @@ package auth
 
 import (
 	"context"
+	"errors"
 
+	"github.com/TiZir/gRPC_service/internal/services/auth"
+	"github.com/TiZir/gRPC_service/internal/storage"
 	gRPC_servicev1 "github.com/TiZir/gRPC_service_protos/protos/gen/go/gRPC_service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -41,6 +44,9 @@ func (s *serverAPI) Login(ctx context.Context, req *gRPC_servicev1.LoginRequest)
 	// Работа со структурой serverAPI
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
 	if err != nil {
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			return nil, status.Error(codes.InvalidArgument, "invalid credentials")
+		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -61,6 +67,9 @@ func (s *serverAPI) Register(ctx context.Context, req *gRPC_servicev1.RegisterRe
 	// Работа со структурой serverAPI
 	userID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
+		if errors.Is(err, storage.ErrUserExists) {
+			return nil, status.Error(codes.AlreadyExists, "user already exists")
+		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &gRPC_servicev1.RegisterResponse{
@@ -75,6 +84,9 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *gRPC_servicev1.IsAdminRequ
 
 	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
 	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "user not found")
+		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &gRPC_servicev1.IsAdminResponse{

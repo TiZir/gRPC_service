@@ -9,14 +9,14 @@ import (
 
 	"github.com/TiZir/gRPC_service/internal/domain/models"
 	"github.com/TiZir/gRPC_service/internal/lib/jwt"
-	"github.com/TiZir/gRPC_service/internal/services/storage"
+	"github.com/TiZir/gRPC_service/internal/storage"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrInvalidAppId = errors.New("invalid app id")
-	ErrUserExists = errors.New("user already exists")
+	ErrInvalidAppId       = errors.New("invalid app id")
+	ErrUserExists         = errors.New("user already exists")
 )
 
 type Auth struct {
@@ -68,7 +68,7 @@ func (a *Auth) Login(ctx context.Context, email, pass string, appID int) (string
 
 	user, err := a.userProvider.User(ctx, email)
 	if err != nil {
-		if errors.Is(err, storage.ErrorUserNotFound) {
+		if errors.Is(err, storage.ErrUserNotFound) {
 			log.Warn("user not found: " + err.Error())
 			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 		}
@@ -141,7 +141,7 @@ func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 	if err != nil {
 		if errors.Is(err, storage.ErrAppNotFound) {
 			log.Warn("app not found: " + err.Error())
-            return false, fmt.Errorf("%s: %w", op, err)
+			return false, fmt.Errorf("%s: %w", op, err)
 		}
 		log.Warn("failed to check if user is admin: " + err.Error())
 		return false, fmt.Errorf("%s: %w", op, ErrInvalidAppId)

@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/TiZir/gRPC_service/internal/services/auth"
-	"github.com/TiZir/gRPC_service/internal/storage"
 	gRPC_servicev1 "github.com/TiZir/gRPC_service_protos/protos/gen/go/gRPC_service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -67,7 +66,7 @@ func (s *serverAPI) Register(ctx context.Context, req *gRPC_servicev1.RegisterRe
 	// Работа со структурой serverAPI
 	userID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
-		if errors.Is(err, storage.ErrUserExists) {
+		if errors.Is(err, auth.ErrUserExists) {
 			return nil, status.Error(codes.AlreadyExists, "user already exists")
 		}
 		return nil, status.Error(codes.Internal, "internal error")
@@ -84,7 +83,7 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *gRPC_servicev1.IsAdminRequ
 
 	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
+		if errors.Is(err, auth.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
 		return nil, status.Error(codes.Internal, "internal error")
